@@ -2,26 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Kusi DataHub</title>
 <style>
-*{box-sizing:border-box}
 body{margin:0;background:#080808;color:white;font-family:Arial,sans-serif}
-header{background:#151515;padding:22px 16px;text-align:center;border-bottom:1px solid #333}
-header h1{margin:0;color:#ffd400}
-header p{color:#ccc}
-main{max-width:600px;margin:auto;padding:20px 15px}
-h2{margin-top:8px}
-.intro{color:#ccc;line-height:1.6}
-.networks{display:flex;gap:8px;margin:20px 0}
-.networks button{flex:1;padding:12px 4px;background:#222;color:white;border:1px solid #555;border-radius:8px;font-weight:bold}
-.networks button.active{background:#ffd400;color:#111}
-.bundle{background:#171717;border:1px solid #383838;border-radius:12px;padding:16px;margin:12px 0}
-.bundle h3{margin:0 0 8px}
-.price{font-size:22px;color:#ffd400;font-weight:bold}
-.note{font-size:12px;color:#aaa}
-.order{display:block;width:100%;padding:13px;background:#25d366;color:#07130a;text-align:center;text-decoration:none;border-radius:8px;font-weight:bold;margin-top:12px;border:0}
-footer{text-align:center;padding:24px;color:#999;font-size:13px}
+header{text-align:center;padding:24px;background:#171717}
+h1{color:#ffd400}
+main{max-width:500px;margin:auto;padding:20px}
+label{display:block;margin:18px 0 8px}
+select,input{width:100%;padding:13px;box-sizing:border-box;background:#222;color:white;border:1px solid #555;border-radius:8px;font-size:16px}
+button{width:100%;padding:14px;margin-top:22px;background:#ffd400;color:#111;border:0;border-radius:8px;font-size:16px;font-weight:bold}
+p{color:#bbb;line-height:1.5}
+#result{display:none;white-space:pre-line;background:#171717;padding:15px;margin-top:20px;border-radius:8px}
+small{color:#aaa}
 </style>
 </head>
 <body>
@@ -30,43 +23,72 @@ footer{text-align:center;padding:24px;color:#999;font-size:13px}
 <p>Your Data, Your Connection 🇬🇭</p>
 </header>
 <main>
-<h2>Buy Data Bundles</h2>
-<p class="intro">Choose your network and bundle. These are sample prices for demonstration only, not confirmed offers.</p>
-<div class="networks">
-<button class="active" onclick="show('MTN',this)">MTN</button>
-<button onclick="show('Telecel',this)">Telecel</button>
-<button onclick="show('AT',this)">AT</button>
-</div>
-<div id="bundles"></div>
-<p class="note">Sample prices only. Confirm actual prices, availability and delivery with Kusi DataHub before paying.</p>
+<h2>Place Your Order</h2>
+<p>Choose a network, data bundle and the phone number that should receive the data.</p>
+
+<form id="orderForm">
+<label for="network">Network</label>
+<select id="network">
+<option>MTN</option>
+<option>Telecel</option>
+<option>AT</option>
+</select>
+
+<label for="bundle">Data bundle</label>
+<select id="bundle"></select>
+
+<label for="phone">Phone number to receive data</label>
+<input id="phone" type="tel" placeholder="e.g. 0241234567" required>
+
+<label for="name">Your name (optional)</label>
+<input id="name" type="text" placeholder="Enter your name">
+
+<button type="submit">Review My Order</button>
+</form>
+
+<div id="result" role="status"></div>
+<p><small>Prices are examples only, not confirmed offers. This demonstration does not send orders or deliver data yet. Never enter your Mobile Money PIN.</small></p>
 </main>
-<footer>© 2026 Kusi DataHub · Ghana</footer>
 <script>
-const data={
-MTN:[['1 GB','GH₵ 5'],['2 GB','GH₵ 10'],['5 GB','GH₵ 22']],
-Telecel:[['1 GB','GH₵ 5'],['2 GB','GH₵ 10'],['5 GB','GH₵ 22']],
-AT:[['1 GB','GH₵ 5'],['2 GB','GH₵ 10'],['5 GB','GH₵ 22']]
+const offers={
+ MTN:[["1 GB",5],["2 GB",10],["5 GB",22]],
+ Telecel:[["1 GB",5],["2 GB",10],["5 GB",22]],
+ AT:[["1 GB",5],["2 GB",10],["5 GB",22]]
 };
-let network='MTN';
-function show(n,btn){
-network=n;
-document.querySelectorAll('.networks button').forEach(b=>b.classList.remove('active'));
-btn.classList.add('active');
-document.getElementById('bundles').innerHTML=data[n].map(b=>`
-<div class="bundle">
-<h3>${n} · ${b[0]}</h3>
-<div class="price">${b[1]}</div>
-<p class="note">Demonstration price — not a live offer.</p>
-<button class="order" onclick="order('${b[0]}','${b[1]}')">Order on WhatsApp</button>
-</div>`).join('');
+const network=document.getElementById("network");
+const bundle=document.getElementById("bundle");
+const result=document.getElementById("result");
+
+function updateBundles(){
+ bundle.innerHTML="";
+ offers[network.value].forEach(item=>{
+  const option=document.createElement("option");
+  option.value=item[0];
+  option.textContent=item[0]+" — sample GH₵"+item[1];
+  bundle.appendChild(option);
+ });
+ result.style.display="none";
 }
-function order(size,price){
-const phone=prompt('Enter your WhatsApp number with country code, e.g. 233XXXXXXXXX');
-if(!phone)return;
-const message=`Hello Kusi DataHub, I want to enquire about ${network} ${size}. Displayed sample price: ${price}. Please confirm the actual price and availability. My contact: ${phone}`;
-window.open('https://wa.me/?text='+encodeURIComponent(message),'_blank');
-}
-show('MTN',document.querySelector('.networks button'));
+network.addEventListener("change",updateBundles);
+updateBundles();
+
+document.getElementById("orderForm").addEventListener("submit",function(e){
+ e.preventDefault();
+ const offer=offers[network.value].find(x=>x[0]===bundle.value);
+ const phone=document.getElementById("phone").value.trim();
+ if(!/^[0-9+\s()-]{9,16}$/.test(phone)){
+  alert("Please enter a valid phone number.");
+  return;
+ }
+ result.textContent=
+ "ORDER SUMMARY\n"+
+ "Network: "+network.value+"\n"+
+ "Bundle: "+offer[0]+"\n"+
+ "Phone: "+phone+"\n"+
+ "Sample price: GH₵"+offer[1]+"\n\n"+
+ "This is a preview only. Your order has NOT been sent to Kusi DataHub.";
+ result.style.display="block";
+});
 </script>
 </body>
 </html>
